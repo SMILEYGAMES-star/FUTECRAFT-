@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liga Craft</title>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:"gg sans","Segoe UI",system-ui,sans-serif;background:#313338;color:#dbdee1;display:flex;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+input{font:inherit;color:inherit}
+.rail{width:72px;background:#1e1f22;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;flex:0 0 72px}
+.srv{width:48px;height:48px;border-radius:16px;background:#5865f2;color:#fff;font-weight:700;font-size:18px;display:grid;place-items:center}
+.side{width:240px;background:#2b2d31;display:flex;flex-direction:column;flex:0 0 240px}
+.shead{height:48px;padding:0 16px;display:flex;align-items:center;font-weight:700;color:#f2f3f5;border-bottom:1px solid #1e1f22;box-shadow:0 1px 0 #00000033}
+.chs{flex:1;padding:8px;overflow:auto}
+.lbl{font-size:12px;font-weight:700;color:#949ba4;text-transform:uppercase;padding:14px 8px 4px}
+.ch{display:flex;gap:6px;align-items:center;width:100%;padding:7px 8px;border-radius:4px;background:transparent;color:#949ba4;text-align:left;font-weight:500}
+.ch:hover{background:#35373c;color:#dbdee1}
+.ch.on{background:#404249;color:#fff}
+.ch b{font-size:20px;font-weight:400;line-height:1;color:#80848e}
+.me{height:52px;background:#232428;display:flex;align-items:center;gap:8px;padding:0 8px}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;flex:0 0 32px;font-size:14px}
+.me input{background:transparent;border:0;border-bottom:1px dashed #5c5f66;outline:0;width:100%;font-weight:600;font-size:14px;color:#f2f3f5}.me input:focus{border-bottom-color:#5865f2}
+.me small{display:block;font-size:11px;color:#949ba4}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{height:48px;padding:0 16px;display:flex;align-items:center;gap:8px;font-weight:700;color:#f2f3f5;border-bottom:1px solid #26272b;flex:0 0 48px}
+.top b{color:#80848e;font-size:22px;font-weight:400}
+.view{display:none;flex:1;min-height:0;flex-direction:column}
+.view.on{display:flex}
+.scroll{flex:1;overflow:auto;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.card{background:#2b2d31;border-radius:8px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;position:relative;border-top:4px solid var(--c)}
+.card .av{width:56px;height:56px;font-size:24px;background:var(--c)}
+.card h3{color:#f2f3f5;font-size:16px;overflow-wrap:anywhere}
+.card p{color:#949ba4;font-size:13px}
+.x{position:absolute;top:6px;right:6px;background:#da373c;color:#fff;border-radius:4px;width:24px;height:24px;line-height:24px;padding:0}
+.empty{margin:auto;text-align:center;color:#949ba4;padding:40px 16px}
+.empty h2{color:#f2f3f5;margin-bottom:6px}
+.msgs{flex:1;overflow:auto;padding:16px 0}
+.msg{display:flex;gap:12px;padding:4px 16px}
+.msg:hover{background:#2e3035}
+.msg .av{width:40px;height:40px;flex:0 0 40px;margin-top:2px}
+.mh{display:flex;gap:8px;align-items:baseline}
+.mh strong{color:#f2f3f5;font-size:15px}
+.mh small{color:#949ba4;font-size:11px}
+.tag{background:#5865f2;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px}
+.mt{overflow-wrap:anywhere;white-space:pre-wrap;font-size:15px}
+.bar{padding:0 16px 20px}
+.bar input{width:100%;background:#383a40;border:0;outline:0;border-radius:8px;padding:12px 16px;font-size:15px}
+.adm{background:#2b2d31;border-radius:8px;padding:12px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap}
+.adm input{background:#1e1f22;border:0;outline:0;border-radius:4px;padding:10px;flex:1 1 140px;min-width:0}
+.adm input[type=color]{flex:0 0 46px;padding:2px;height:40px}
+.btn{background:#5865f2;color:#fff;border-radius:4px;padding:10px 16px;font-weight:600}
+.btn:hover{background:#4752c4}
+.bang{position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:50%;background:#da373c;color:#fff;font-weight:800;font-size:22px;box-shadow:0 4px 12px #0008;z-index:5}
+.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;z-index:9;padding:16px}
+.modal.on{display:grid}
+.box{background:#313338;border-radius:8px;padding:24px;max-width:380px;width:100%;text-align:center}
+.box h2{color:#f2f3f5;margin-bottom:6px}
+.box p{color:#b5bac1;margin-bottom:14px}
+.box input{width:100%;background:#1e1f22;border:0;outline:0;border-radius:4px;padding:10px;margin-bottom:10px;text-align:center}
+.box .btn{width:100%}
+.box .sub{background:transparent;color:#b5bac1;margin-top:6px;font-size:13px}
+#st{position:fixed;top:8px;right:12px;font-size:12px;color:#949ba4;z-index:4}
+@media(max-width:700px){
+.rail{display:none}
+body{flex-direction:column}
+.side{width:100%;flex:0 0 auto}
+.shead,.lbl{display:none}
+.chs{display:flex;gap:4px;padding:6px;overflow:auto}
+.ch{width:auto;white-space:nowrap}
+.me{border-top:1px solid #1e1f22}
+}
+.tw{overflow-x:auto;border-radius:8px}
+.tbl{width:100%;border-collapse:collapse;background:#2b2d31;min-width:420px}
+.tbl th{font-size:12px;color:#949ba4;text-transform:uppercase;text-align:center;padding:10px 6px;background:#232428}
+.tbl td{padding:10px 6px;text-align:center;border-top:1px solid #1e1f22}
+.tbl th:nth-child(2),.tbl td:nth-child(2){text-align:left}
+.tbl td:first-child{font-weight:700;color:#949ba4;width:36px}
+.tn{display:flex;align-items:center;gap:8px;min-width:0}
+.tn i{width:10px;height:10px;border-radius:50%;flex:0 0 10px}
+.tn strong{color:#f2f3f5;overflow-wrap:anywhere}
+.tn small{display:block;color:#949ba4;font-size:11px}
+.pts{font-weight:800;color:#f2f3f5}
+.tbl input[type=number]{width:46px;background:#1e1f22;border:0;outline:0;border-radius:4px;color:inherit;padding:6px 2px;text-align:center}
+.del{background:#da373c;color:#fff;border-radius:4px;width:26px;height:26px;padding:0}
+</style>
+</head>
+<body>
+
+<div class="rail"><div class="srv">S</div></div>
+
+<aside class="side">
+<div class="shead">⚽ Liga Craft</div>
+<div class="chs">
+<div class="lbl">Campeonato</div>
+<button class="ch on" data-v="teams"><b>#</b> Liga Craft</button>
+<div class="lbl">Comunidade</div>
+<button class="ch" data-v="chat"><b>#</b> chat</button>
+</div>
+<div class="me">
+<div class="av" id="meAv" style="background:#5865f2">?</div>
+<div style="min-width:0"><input id="nick" maxlength="20" aria-label="Seu apelido"><small id="role">Anônimo</small></div>
+</div>
+</aside>
+
+<main class="main">
+<div class="top"><b>#</b><span id="title">Liga Craft</span></div>
+
+<section class="view on" id="teams">
+<div class="scroll">
+<form class="adm" id="addForm">
+<input id="tName" maxlength="30" placeholder="Nome do time" required>
+<input id="tPlayer" maxlength="20" placeholder="Jogador" required>
+<input id="tColor" type="color" value="#5865f2" aria-label="Cor">
+<button class="btn">Adicionar time</button>
+</form>
+<div class="tw"><table class="tbl" id="tbl"></table></div>
+<div class="empty" id="noTeams"><h2>Nenhum time ainda</h2><p>Adicione o seu time no formulário acima.</p></div>
+</div>
+</section>
+
+<section class="view" id="chat">
+<div class="msgs" id="msgs"></div>
+<form class="bar" id="msgForm"><input id="msgIn" maxlength="300" placeholder="Peça seu time aqui ou dê boas-vindas" autocomplete="off"></form>
+</section>
+</main>
+
+<span id="st">conectando...</span>
+<button class="bang" id="bang" aria-label="Área do ADM">!</button>
+
+<div class="modal" id="modal">
+<div class="box">
+<h2>Só o ADM sabe o que fazer aqui, saia.</h2>
+<p id="mp">Se você não é ADM, fecha isso aí.</p>
+<input id="code" autocomplete="off" placeholder="...">
+<button class="btn" id="ok">Entrar</button>
+<button class="sub" id="close">Sair</button>
+</div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {getFirestore,collection,doc,addDoc,deleteDoc,updateDoc,onSnapshot,query,orderBy,limit,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyAEIH03EJ4PxLubyX6xcHfkm2fLrxW9E7E",
+authDomain:"futecraft-3eaa9.firebaseapp.com",
+projectId:"futecraft-3eaa9",
+storageBucket:"futecraft-3eaa9.firebasestorage.app",
+messagingSenderId:"265613262257",
+appId:"1:265613262257:web:2fc6dbe2c92341c2a9d190"
+};
+
+const $=id=>document.getElementById(id);
+const clean=(v,n)=>String(v||"").trim().slice(0,n);
+const LS=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const SS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+
+let teams=[],db,isAdm=LS("solo_adm")==="1";
+let nick=LS("solo_nick")||"Anônimo"+Math.floor(1000+Math.random()*9000);
+
+function color(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return`hsl(${h} 55% 45%)`}
+
+function renderMe(){
+$("nick").value=nick;
+$("meAv").textContent=nick[0].toUpperCase();
+$("meAv").style.background=color(nick);
+$("role").textContent=(isAdm?"ADM":"Anônimo")+" · toque no nome para trocar";
+renderTable();
+}
+
+$("nick").onkeydown=e=>{if(e.key==="Enter")e.target.blur()};
+$("nick").onchange=()=>{nick=clean($("nick").value,20)||nick;SS("solo_nick",nick);renderMe()};
+
+// navegação
+document.querySelectorAll(".ch").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".ch,.view").forEach(x=>x.classList.remove("on"));
+b.classList.add("on");
+$(b.dataset.v).classList.add("on");
+$("title").textContent=b.textContent.replace("#","").trim();
+if(b.dataset.v==="chat")$("msgs").scrollTop=$("msgs").scrollHeight;
+});
+
+// botão "!"
+$("bang").onclick=()=>{
+$("modal").classList.add("on");
+$("code").value="";
+$("mp").textContent=isAdm?"Você já é ADM.":"Se você não é ADM, fecha isso aí.";
+$("code").focus();
+};
+$("close").onclick=()=>$("modal").classList.remove("on");
+$("modal").onclick=e=>{if(e.target===$("modal"))$("modal").classList.remove("on")};
+$("ok").onclick=()=>{
+if($("code").value.trim().toLowerCase()==="codigo"){
+isAdm=true;SS("solo_adm","1");renderMe();
+$("modal").classList.remove("on");
+}else{$("mp").textContent="Código errado."}
+};
+$("code").onkeydown=e=>{if(e.key==="Enter")$("ok").click()};
+
+// tabela (mais pontos em cima)
+function renderTeams(snap){
+teams=[];
+snap.forEach(d=>{
+const t=d.data();
+teams.push({id:d.id,name:t.name,player:t.player,color:t.color||"#5865f2",wins:t.wins||0,draws:t.draws||0,losses:t.losses||0});
+});
+renderTable();
+}
+
+function renderTable(){
+const tbl=$("tbl");
+tbl.replaceChildren();
+$("noTeams").style.display=teams.length?"none":"block";
+if(!teams.length)return;
+
+const pts=t=>t.wins*3+t.draws;
+const list=[...teams].sort((a,b)=>pts(b)-pts(a)||b.wins-a.wins||a.name.localeCompare(b.name,"pt-BR"));
+
+const hr=document.createElement("tr");
+["#","Time","PTS","J","V","E","D"].concat(isAdm?[""]:[]).forEach(h=>{
+const th=document.createElement("th");th.textContent=h;hr.append(th);
+});
+const thead=document.createElement("thead");thead.append(hr);
+
+const tb=document.createElement("tbody");
+list.forEach((t,i)=>{
+const tr=document.createElement("tr");
+const td=txt=>{const c=document.createElement("td");if(txt!==undefined)c.textContent=txt;tr.append(c);return c};
+
+td(i+1);
+
+const nc=td(),box=document.createElement("div");box.className="tn";
+const dot=document.createElement("i");dot.style.background=t.color;
+const w=document.createElement("div");
+const n=document.createElement("strong");n.textContent=t.name;
+const pl=document.createElement("small");pl.textContent=t.player;
+w.append(n,pl);box.append(dot,w);nc.append(box);
+
+td(pts(t)).className="pts";
+td(t.wins+t.draws+t.losses);
+
+[["wins",t.wins],["draws",t.draws],["losses",t.losses]].forEach(([k,v])=>{
+const c=td();
+if(isAdm){
+const inp=document.createElement("input");
+inp.type="number";inp.min="0";inp.value=v;
+inp.onchange=()=>save(t,k,inp.value);
+c.append(inp);
+}else c.textContent=v;
+});
+
+if(isAdm){
+const c=td(),x=document.createElement("button");
+x.className="del";x.textContent="×";
+x.onclick=()=>{if(confirm("Remover "+t.name+"?"))deleteDoc(doc(db,"solo_teams",t.id)).catch(()=>alert("Erro ao remover."))};
+c.append(x);
+}
+tb.append(tr);
+});
+
+tbl.append(thead,tb);
+}
+
+async function save(t,k,val){
+if(!isAdm)return;
+const n=Number(val);
+if(!Number.isInteger(n)||n<0){renderTable();return}
+const x={wins:t.wins,draws:t.draws,losses:t.losses};
+x[k]=n;
+x.points=x.wins*3+x.draws;
+try{await updateDoc(doc(db,"solo_teams",t.id),x)}
+catch(e){console.error(e);alert("Erro ao salvar. Confira as regras do Firestore.");renderTable()}
+}
+
+$("addForm").onsubmit=async e=>{
+e.preventDefault();
+const name=clean($("tName").value,30),player=clean($("tPlayer").value,20);
+if(!name||!player)return;
+try{
+await addDoc(collection(db,"solo_teams"),{name,player,color:$("tColor").value,wins:0,draws:0,losses:0,points:0,createdAt:serverTimestamp()});
+$("tName").value="";$("tPlayer").value="";
+}catch(err){console.error(err);alert("Erro ao adicionar. Confira as regras do Firestore.")}
+};
+
+// chat
+function renderChat(snap){
+const box=$("msgs");box.replaceChildren();
+[...snap.docs].reverse().forEach(d=>{
+const m=d.data(),r=document.createElement("div");r.className="msg";
+const av=document.createElement("div");av.className="av";av.textContent=(m.nick||"?")[0].toUpperCase();av.style.background=color(m.nick||"?");
+const b=document.createElement("div");
+const h=document.createElement("div");h.className="mh";
+const n=document.createElement("strong");n.textContent=m.nick||"Anônimo";h.append(n);
+if(m.adm){const t=document.createElement("span");t.className="tag";t.textContent="ADM";h.append(t)}
+const s=document.createElement("small");s.textContent=m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"agora";h.append(s);
+const t=document.createElement("div");t.className="mt";t.textContent=m.text;
+b.append(h,t);r.append(av,b);box.append(r);
+});
+box.scrollTop=box.scrollHeight;
+}
+
+$("msgForm").onsubmit=async e=>{
+e.preventDefault();
+const text=clean($("msgIn").value,300);if(!text)return;
+$("msgIn").value="";
+try{await addDoc(collection(db,"solo_chat"),{nick,text,adm:isAdm,createdAt:serverTimestamp()})}
+catch(err){console.error(err);alert("Mensagem não enviada. Confira as regras do Firestore.")}
+};
+
+renderMe();
+
+try{
+const app=initializeApp(firebaseConfig);
+db=getFirestore(app);
+await signInAnonymously(getAuth(app));
+$("st").textContent="● online";$("st").style.color="#23a559";
+onSnapshot(query(collection(db,"solo_teams"),limit(100)),renderTeams,console.error);
+onSnapshot(query(collection(db,"solo_chat"),orderBy("createdAt","desc"),limit(80)),renderChat,console.error);
+}catch(e){
+console.error(e);
+$("st").textContent="● offline";$("st").style.color="#da373c";
+}
+</script>
+</body>
+</html>
