@@ -85,7 +85,7 @@ body{flex-direction:column}
 .tn small{display:block;color:#949ba4;font-size:11px}
 .pts{font-weight:800;color:#f2f3f5}
 .tbl input[type=number]{width:46px;background:#1e1f22;border:0;outline:0;border-radius:4px;color:inherit;padding:6px 2px;text-align:center}
-.del{background:#da373c;color:#fff;border-radius:4px;width:26px;height:26px;padding:0}
+.del{background:#da373c;color:#fff;border-radius:4px;padding:6px 10px;font-size:12px;font-weight:600;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -111,14 +111,14 @@ body{flex-direction:column}
 
 <section class="view on" id="teams">
 <div class="scroll">
-<form class="adm" id="addForm">
+<form class="adm" id="addForm" hidden>
 <input id="tName" maxlength="30" placeholder="Nome do time" required>
 <input id="tPlayer" maxlength="20" placeholder="Jogador" required>
 <input id="tColor" type="color" value="#5865f2" aria-label="Cor">
 <button class="btn">Adicionar time</button>
 </form>
 <div class="tw"><table class="tbl" id="tbl"></table></div>
-<div class="empty" id="noTeams"><h2>Nenhum time ainda</h2><p>Adicione o seu time no formulário acima.</p></div>
+<div class="empty" id="noTeams"><h2>Nenhum time ainda</h2><p>Peça o seu time no chat. Só o ADM adiciona.</p></div>
 </div>
 </section>
 
@@ -144,7 +144,7 @@ body{flex-direction:column}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {getFirestore,collection,doc,addDoc,deleteDoc,updateDoc,onSnapshot,query,orderBy,limit,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import {getFirestore,collection,doc,addDoc,setDoc,getDoc,deleteDoc,updateDoc,onSnapshot,query,orderBy,limit,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig={
 apiKey:"AIzaSyAEIH03EJ4PxLubyX6xcHfkm2fLrxW9E7E",
@@ -160,7 +160,7 @@ const clean=(v,n)=>String(v||"").trim().slice(0,n);
 const LS=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const SS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 
-let teams=[],db,isAdm=LS("solo_adm")==="1";
+let teams=[],db,uid,isAdm=false;
 let nick=LS("solo_nick")||"Anônimo"+Math.floor(1000+Math.random()*9000);
 
 function color(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return`hsl(${h} 55% 45%)`}
@@ -169,6 +169,7 @@ function renderMe(){
 $("nick").value=nick;
 $("meAv").textContent=nick[0].toUpperCase();
 $("meAv").style.background=color(nick);
+$("addForm").hidden=!isAdm;
 $("role").textContent=(isAdm?"ADM":"Anônimo")+" · toque no nome para trocar";
 renderTable();
 }
@@ -194,11 +195,20 @@ $("code").focus();
 };
 $("close").onclick=()=>$("modal").classList.remove("on");
 $("modal").onclick=e=>{if(e.target===$("modal"))$("modal").classList.remove("on")};
-$("ok").onclick=()=>{
-if($("code").value.trim().toLowerCase()==="codigo"){
-isAdm=true;SS("solo_adm","1");renderMe();
+$("ok").onclick=async()=>{
+const typed=$("code").value.trim();
+if(!typed)return;
+if(!uid||!db){$("mp").textContent="Conectando... tente de novo.";return}
+$("mp").textContent="Verificando...";
+try{
+// as regras do Firebase conferem o código; se estiver errado, a escrita é negada
+await setDoc(doc(db,"admins",uid),{code:typed});
+isAdm=true;renderMe();
 $("modal").classList.remove("on");
-}else{$("mp").textContent="Código errado."}
+}catch(e){
+console.error(e);
+$("mp").textContent="Código errado.";
+}
 };
 $("code").onkeydown=e=>{if(e.key==="Enter")$("ok").click()};
 
@@ -256,7 +266,7 @@ c.append(inp);
 
 if(isAdm){
 const c=td(),x=document.createElement("button");
-x.className="del";x.textContent="×";
+x.className="del";x.textContent="🗑 Remover";
 x.onclick=()=>{if(confirm("Remover "+t.name+"?"))deleteDoc(doc(db,"solo_teams",t.id)).catch(()=>alert("Erro ao remover."))};
 c.append(x);
 }
@@ -279,6 +289,7 @@ catch(e){console.error(e);alert("Erro ao salvar. Confira as regras do Firestore.
 
 $("addForm").onsubmit=async e=>{
 e.preventDefault();
+if(!isAdm)return;
 const name=clean($("tName").value,30),player=clean($("tPlayer").value,20);
 if(!name||!player)return;
 try{
@@ -317,8 +328,10 @@ renderMe();
 try{
 const app=initializeApp(firebaseConfig);
 db=getFirestore(app);
-await signInAnonymously(getAuth(app));
+const cred=await signInAnonymously(getAuth(app));
+uid=cred.user.uid;
 $("st").textContent="● online";$("st").style.color="#23a559";
+getDoc(doc(db,"admins",uid)).then(a=>{if(a.exists()){isAdm=true;renderMe()}}).catch(()=>{});
 onSnapshot(query(collection(db,"solo_teams"),limit(100)),renderTeams,console.error);
 onSnapshot(query(collection(db,"solo_chat"),orderBy("createdAt","desc"),limit(80)),renderChat,console.error);
 }catch(e){
