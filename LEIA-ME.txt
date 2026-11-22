@@ -1,0 +1,32 @@
+FOOTCRAFT — pacote inicial
+
+ARQUIVOS
+- index.html: site completo em um único HTML, com Firebase Auth anônimo e Firestore.
+- firestore.rules: regras de segurança do Firestore.
+
+ANTES DE PUBLICAR
+1. No Firebase Console > Authentication > Sign-in method, ative Anonymous.
+2. No Firebase Console > Firestore Database > Rules, cole o conteúdo de firestore.rules e clique em Publicar.
+3. Publique index.html na raiz de um repositório GitHub e ative GitHub Pages (Deploy from branch / main / root).
+4. No Firebase Console > Authentication > Settings > Authorized domains, adicione seu domínio GitHub Pages: SEU-USUARIO.github.io.
+5. Abra o site publicado, vá em ☰ > Configurações e copie o ID anônimo exibido.
+6. No Firestore, crie manualmente a coleção admins e um documento cujo ID seja exatamente esse UID. Dentro dele, crie o campo:
+   role (string) = admin
+
+SEGURANÇA
+- Não existe senha secreta de administrador dentro do HTML.
+- A coleção admins não pode ser criada nem alterada pelo próprio site. O primeiro administrador deve ser cadastrado manualmente pelo dono do projeto no Firebase Console.
+- Não compartilhe o UID administrativo publicamente.
+- As regras do Firestore devem ser publicadas no Firebase Console; colocar firestore.rules no GitHub não as aplica automaticamente.
+
+ESCOPO DESTA VERSÃO
+- Login anônimo e apelido.
+- Chat por canal, separado entre SOLO e GRUPO.
+- Criação/listagem de clubes (até quatro nomes de jogadores).
+- Listagem e criação administrativa de torneios.
+- Brasileirão com atualização administrativa de vitórias/empates/derrotas e cálculo de pontos (3 por vitória, 1 por empate).
+- Configurações básicas de apelido e painel ADM.
+
+NOTAS
+- Esta é uma primeira versão funcional para teste. Ainda não inclui convites privados, gerenciamento de elenco por contas individuais, moderação avançada, nem criação automática de canais de torneio.
+- Teste primeiro com poucas pessoas. Não use dados pessoais nos apelidos.
